@@ -256,6 +256,7 @@ footer{
   }
 }
 
+/* Tablet (768px - 1024px) */
 @media (max-width: 1024px) {
   /* Header (Navbar) */
   .Header {
@@ -286,15 +287,26 @@ footer{
     font-size: 13px; /* Increased font size for better readability */
     padding: 12px 20px; /* Adjusted padding for better clickability */
   }
-  .Header {
-    padding: 0 50px;
+
+  .home-content h1 {
+    font-size: 45px; /* Increased font size for main heading */
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
   }
 
-  /* Increase padding around the whole home section for more space */
+  .home-content h2 {
+    font-size: 22px; /* Increased font size for subheading */
+    font-weight: 700;
+    color: black;
+    text-align: center;
+    padding: 20px 0; /* Increased padding around the subheading */
+  }
 
-.Logo{
-  font-size: 15px;
-}
+  .Logo {
+    font-size: 15px;
+  }
 
   .Socials {
     padding: 10px 100px;
@@ -315,8 +327,7 @@ footer{
   }
 }
 
-
-  /* Mobile (Below 768px) */
+/* Mobile (Below 768px) */
 @media (max-width: 768px) {
   /* Header (Navbar) */
   .Header {
@@ -326,42 +337,76 @@ footer{
     align-items: center;
   }
 
-  /* Navbar links container */
+  .storeLogo {
+    width: 50vw;
+    height: 50vw;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   .Header ul {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;  /* Reduced gap between links */
+    flex-direction: column; /* Stack navbar items vertically */
+    align-items: center; /* Center-align the navbar items */
+    gap: 10px; /* Smaller gap between links */
     width: 100%;
     padding: 0;
   }
 
   /* Navbar list items */
   .Header ul li {
-    display: inline-block;
-    margin: 0 1px;  /* Reduced margin to make navbar more compact */
+    display: block;
+    width: 100%; /* Take full width of the navbar */
+    text-align: center; /* Center the link text */
+    margin: 0;
   }
 
   /* Navbar links */
   .Header ul li a {
-    font-size: 7px;  /* Smaller font for links */
-    padding: 8px 1px;  /* Reduced padding around links */
+    font-size: 16px;
+    padding: 12px 20px;
+    display: block;
+    width: 100%;
+  }
+
+  /* Submenu (for mobile) */
+  .Header ul .submenu {
+    display: none; /* Initially hidden */
+    position: static; /* Make submenu part of the flow */
+    background-color: whitesmoke;
+    width: 100%;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
+  }
+
+  /* Show submenu on hover for desktop-like dropdown behavior */
+  .Header ul li:hover .submenu {
+    display: block; /* Submenu appears when hovering over parent (works for mobile too) */
+  }
+
+  /* Submenu items */
+  .Header ul .submenu li a {
+    padding: 15px 10px;
+    color: navy;
+    text-align: left;
+  }
+
+  .Header ul .submenu li a:hover {
+    color: black;
   }
 
   /* Logo size */
   .Logo {
-    font-size: 12px;  /* Smaller logo */
+    font-size: 12px; /* Smaller logo */
   }
-}
 
+  .home-content h1 {
+    font-size: 15px; 
+  }
 
-  .Navbar a{
-    font-size: 5px;
-    font-weight: 700;
-    cursor: pointer;
-    color: rgb(131, 182, 55);
-    border-bottom: 2px solid transparent;
-    transition: 0.5s ease;
+  .home-content h2 {
+    font-size: 10px; 
+    padding: 0 10px;
   }
 
   .Socials {
@@ -384,11 +429,4 @@ footer{
     font-size: 12px;
     padding: 140px 20px;
   }
-
-   .about-content h1{ 
-    font-size: 15px; 
-   } 
-
-  .about-content h2{ 
-    font-size: 10px; 
-  } 
+} 

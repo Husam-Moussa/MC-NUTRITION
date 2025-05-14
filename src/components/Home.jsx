@@ -1858,7 +1858,7 @@ const Home = () => {
               {
                 name: "Husam Moussa",
                 rating: 5,
-                image: "/Images/Me.jpg",
+                image: "Me.jpg",
                 review: "Incredible results with the Pro Whey Isolate. Gained 5lbs of lean muscle in just 2 months!",
                 product: "Pro Whey Isolate"
               },

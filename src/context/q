@@ -1,0 +1,45 @@
+{/* View Controls */}
+        <motion.div
+          className="absolute inset-0 bg-black/60 flex items-center justify-center gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation();
+              onQuickView(product);
+            }}
+            className="bg-lime-500 text-black px-4 py-2 rounded-lg font-semibold text-sm"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Quick View
+          </motion.button>
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveView(activeView === 'nutrition' ? null : 'nutrition');
+            }}
+            className={`backdrop-blur text-white px-4 py-2 rounded-lg font-semibold text-sm ${
+              activeView === 'nutrition' ? 'bg-lime-500 text-black' : 'bg-white/20'
+            }`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Nutrition
+          </motion.button>
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveView(activeView === 'benefits' ? null : 'benefits');
+            }}
+            className={`backdrop-blur text-white px-4 py-2 rounded-lg font-semibold text-sm ${
+              activeView === 'benefits' ? 'bg-lime-500 text-black' : 'bg-white/20'
+            }`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Benefits
+          </motion.button>
+        </motion.div>

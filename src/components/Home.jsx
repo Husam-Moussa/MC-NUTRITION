@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
+import { auth } from '../firebase/config'
+import Footer from './Footer'
 
 // SVG Components for animated background
 const CartIcon = () => (
@@ -652,22 +656,34 @@ const getSupplementRecommendations = (goal, restrictions) => {
     muscle_gain: [
       { name: "Pro Whey Isolate", dosage: "2 scoops daily", timing: "Post-workout and between meals" },
       { name: "Creatine Monohydrate", dosage: "5g daily", timing: "Any time" },
-      { name: "BCAAs", dosage: "5-10g", timing: "During workouts" }
+      { name: "BCAAs", dosage: "5-10g", timing: "During workouts" },
+      { name: "Mass Gainer", dosage: "1-2 scoops daily", timing: "Post-workout" },
+      { name: "Glutamine", dosage: "5g daily", timing: "Before bed" },
+      { name: "ZMA", dosage: "1 serving", timing: "Before bed" }
     ],
     weight_loss: [
       { name: "Whey Protein Isolate", dosage: "1-2 scoops daily", timing: "Between meals" },
       { name: "L-Carnitine", dosage: "2g daily", timing: "Before cardio" },
-      { name: "CLA", dosage: "3g daily", timing: "With meals" }
+      { name: "CLA", dosage: "3g daily", timing: "With meals" },
+      { name: "Green Tea Extract", dosage: "500mg daily", timing: "Morning and afternoon" },
+      { name: "Fat Burner Complex", dosage: "1 serving", timing: "Morning" },
+      { name: "BCAAs", dosage: "5g", timing: "During workouts" }
     ],
     performance: [
       { name: "Pre-Workout Complex", dosage: "1 scoop", timing: "30 mins before workout" },
       { name: "Beta-Alanine", dosage: "3-5g daily", timing: "Any time" },
-      { name: "Electrolyte Formula", dosage: "1 serving", timing: "During workouts" }
+      { name: "Electrolyte Formula", dosage: "1 serving", timing: "During workouts" },
+      { name: "Creatine Monohydrate", dosage: "5g daily", timing: "Any time" },
+      { name: "Nitric Oxide Booster", dosage: "1 serving", timing: "Pre-workout" },
+      { name: "BCAAs", dosage: "5-10g", timing: "During workouts" }
     ],
     recovery: [
       { name: "Post-Workout Recovery", dosage: "1 scoop", timing: "Immediately after workout" },
       { name: "Glutamine", dosage: "5g daily", timing: "Before bed" },
-      { name: "ZMA", dosage: "1 serving", timing: "Before bed" }
+      { name: "ZMA", dosage: "1 serving", timing: "Before bed" },
+      { name: "BCAAs", dosage: "5g", timing: "During workouts" },
+      { name: "Omega-3 Fish Oil", dosage: "2-3g daily", timing: "With meals" },
+      { name: "Vitamin D3", dosage: "2000-5000 IU daily", timing: "Morning" }
     ]
   };
 
@@ -676,7 +692,9 @@ const getSupplementRecommendations = (goal, restrictions) => {
     if (restrictions.includes('vegan') && supp.name.toLowerCase().includes('whey')) {
       return false;
     }
-    // Add more restriction filters as needed
+    if (restrictions.includes('vegetarian') && supp.name.toLowerCase().includes('fish')) {
+      return false;
+    }
     return true;
   });
 };
@@ -927,26 +945,38 @@ const Home = () => {
       size: "12 lbs (5.44 kg)",
       badge: "Best Seller",
       isNew: true,
+      rating: 4.8,
+      reviews: 245,
+      stock: 15,
       keyFeatures: [
         "High-quality protein blend",
         "Complex carbohydrates",
         "Essential vitamins & minerals",
-        "Enhanced muscle growth"
+        "Enhanced muscle growth",
+        "Fast absorption",
+        "Great taste"
       ],
       color: "from-lime-500 to-lime-600",
       nutrition: {
         protein: "52g",
         calories: "1250",
         carbs: "245g",
-        servings: "30"
+        servings: "30",
+        bcaa: "10g",
+        glutamine: "5g"
       },
       benefits: [
         "Rapid muscle mass gains",
         "Enhanced recovery",
         "Improved strength",
-        "Complete nutrient profile"
+        "Complete nutrient profile",
+        "Better workout performance",
+        "Reduced muscle fatigue"
       ],
-      usage: "Mix 2 scoops with 16-20 oz of cold water or milk. Take 1-2 servings daily between meals or post-workout."
+      usage: "Mix 2 scoops with 16-20 oz of cold water or milk. Take 1-2 servings daily between meals or post-workout.",
+      flavors: ["Chocolate", "Vanilla", "Strawberry", "Cookies & Cream"],
+      allergens: ["Milk", "Soy"],
+      certifications: ["GMP Certified", "Lab Tested", "NSF Certified"]
     },
     {
       id: 2,
@@ -957,26 +987,38 @@ const Home = () => {
       category: "Whey Protein",
       size: "5 lbs (2.27 kg)",
       badge: "Top Rated",
+      rating: 4.9,
+      reviews: 189,
+      stock: 20,
       keyFeatures: [
         "25g protein per serving",
         "Fast absorption",
         "Low in carbs",
-        "Great taste"
+        "Great taste",
+        "Mixes easily",
+        "No artificial colors"
       ],
       color: "from-lime-500 to-lime-600",
       nutrition: {
         protein: "25g",
         calories: "130",
         bcaa: "5.6g",
-        servings: "25"
+        servings: "25",
+        fat: "1.5g",
+        sugar: "2g"
       },
       benefits: [
         "Lean muscle growth",
         "Enhanced protein synthesis",
         "Quick recovery",
-        "Improved performance"
+        "Improved performance",
+        "Better muscle definition",
+        "Reduced muscle soreness"
       ],
-      usage: "Mix 1 scoop with 8-10 oz of cold water or milk. Take 1-2 servings daily, preferably post-workout or between meals."
+      usage: "Mix 1 scoop with 8-10 oz of cold water or milk. Take 1-2 servings daily, preferably post-workout or between meals.",
+      flavors: ["Chocolate", "Vanilla", "Strawberry", "Banana"],
+      allergens: ["Milk"],
+      certifications: ["GMP Certified", "Lab Tested", "Informed Choice"]
     },
     {
       id: 3,
@@ -987,25 +1029,37 @@ const Home = () => {
       category: "Creatine",
       size: "300g",
       isNew: true,
+      rating: 4.7,
+      reviews: 156,
+      stock: 25,
       keyFeatures: [
         "5g pure creatine per serving",
         "Micronized formula",
         "Enhanced absorption",
-        "100% pure"
+        "100% pure",
+        "No fillers",
+        "Mixes easily"
       ],
       color: "from-lime-500 to-lime-600",
       nutrition: {
         creatine: "5g",
         calories: "0",
-        servings: "60"
+        servings: "60",
+        purity: "99.9%",
+        solubility: "High"
       },
       benefits: [
         "Increased strength",
         "Enhanced power output",
         "Improved muscle recovery",
-        "Better performance"
+        "Better performance",
+        "Increased muscle volume",
+        "Reduced fatigue"
       ],
-      usage: "Mix 1 scoop (5g) with water or your favorite beverage. Take daily for best results."
+      usage: "Mix 1 scoop (5g) with water or your favorite beverage. Take daily for best results.",
+      flavors: ["Unflavored"],
+      allergens: ["None"],
+      certifications: ["GMP Certified", "Lab Tested", "NSF Certified"]
     }
   ]
 
@@ -1638,9 +1692,29 @@ const Home = () => {
                       {product.name}
                     </h3>
                     
+                    {/* Rating and Reviews */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex text-lime-500">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className={i < Math.floor(product.rating) ? "text-lime-500" : "text-gray-600"}>
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-gray-400 text-sm">({product.reviews} reviews)</span>
+                    </div>
+                    
                     <p className="text-gray-400 text-sm line-clamp-2">
                       {product.description}
                     </p>
+
+                    {/* Stock Status */}
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className={`w-2 h-2 rounded-full ${product.stock > 10 ? 'bg-green-500' : product.stock > 5 ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                      <span className="text-gray-400">
+                        {product.stock > 10 ? 'In Stock' : product.stock > 5 ? 'Low Stock' : 'Almost Sold Out'}
+                      </span>
+                    </div>
 
                     {/* Key Features */}
                     <div className="grid grid-cols-2 gap-2">
@@ -1657,6 +1731,20 @@ const Home = () => {
                         </motion.div>
                       ))}
                     </div>
+
+                    {/* Flavors */}
+                    {product.flavors && (
+                      <div className="flex flex-wrap gap-2">
+                        {product.flavors.map((flavor, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-1 bg-black/30 border border-lime-500/20 rounded-full text-xs text-gray-300"
+                          >
+                            {flavor}
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Price and Action */}
                     <div className="flex items-center justify-between pt-4 border-t border-lime-500/10">
@@ -1678,6 +1766,20 @@ const Home = () => {
                         </svg>
                       </motion.button>
                     </div>
+
+                    {/* Certifications */}
+                    {product.certifications && (
+                      <div className="flex flex-wrap gap-2 pt-4 border-t border-lime-500/10">
+                        {product.certifications.map((cert, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-1 bg-lime-500/10 rounded-full text-xs text-lime-500"
+                          >
+                            {cert}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Hover Glow Effect */}
@@ -1858,7 +1960,7 @@ const Home = () => {
               {
                 name: "Husam Moussa",
                 rating: 5,
-                image: "Me.jpg",
+                image: "/Images/Me.jpg",
                 review: "Incredible results with the Pro Whey Isolate. Gained 5lbs of lean muscle in just 2 months!",
                 product: "Pro Whey Isolate"
               },
@@ -2049,19 +2151,23 @@ const Home = () => {
                     >
                       {nutritionResults.calories} kcal
                     </motion.p>
+                    <p className="text-gray-400 text-sm mt-2">
+                      Based on your {calculatorData.goal.replace('_', ' ')} goals
+                    </p>
                   </motion.div>
+
                   <div className="grid grid-cols-3 gap-4">
                     {[
-                      { label: "Protein", value: nutritionResults.protein },
-                      { label: "Carbs", value: nutritionResults.carbs },
-                      { label: "Fats", value: nutritionResults.fats }
+                      { label: "Protein", value: nutritionResults.protein, unit: "g", color: "from-blue-500/20 to-blue-500/5" },
+                      { label: "Carbs", value: nutritionResults.carbs, unit: "g", color: "from-green-500/20 to-green-500/5" },
+                      { label: "Fats", value: nutritionResults.fats, unit: "g", color: "from-yellow-500/20 to-yellow-500/5" }
                     ].map((macro, idx) => (
                       <motion.div
                         key={macro.label}
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.5, delay: 0.3 + (idx * 0.1) }}
-                        className="p-4 border border-lime-500/20 rounded-lg"
+                        className={`p-4 border border-lime-500/20 rounded-lg bg-gradient-to-br ${macro.color}`}
                       >
                         <h4 className="text-lime-500 font-bold mb-2">{macro.label}</h4>
                         <motion.p
@@ -2070,15 +2176,43 @@ const Home = () => {
                           transition={{ duration: 0.5, delay: 0.4 + (idx * 0.1) }}
                           className="text-2xl text-white"
                         >
-                          {macro.value}g
+                          {macro.value}{macro.unit}
                         </motion.p>
                       </motion.div>
                     ))}
                   </div>
+
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.6 }}
+                    className="p-4 bg-lime-500/10 rounded-lg"
+                  >
+                    <h4 className="text-lime-500 font-bold mb-2">Meal Timing Recommendations</h4>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 text-gray-300">
+                        <div className="w-2 h-2 rounded-full bg-lime-500" />
+                        <span>Breakfast: {Math.round(nutritionResults.calories * 0.25)} kcal</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-gray-300">
+                        <div className="w-2 h-2 rounded-full bg-lime-500" />
+                        <span>Lunch: {Math.round(nutritionResults.calories * 0.35)} kcal</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-gray-300">
+                        <div className="w-2 h-2 rounded-full bg-lime-500" />
+                        <span>Dinner: {Math.round(nutritionResults.calories * 0.3)} kcal</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-gray-300">
+                        <div className="w-2 h-2 rounded-full bg-lime-500" />
+                        <span>Snacks: {Math.round(nutritionResults.calories * 0.1)} kcal</span>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.7 }}
                     className="p-4 bg-lime-500/10 rounded-lg"
                   >
                     <h4 className="text-lime-500 font-bold mb-2">Recommended Supplements</h4>
@@ -2088,11 +2222,56 @@ const Home = () => {
                           key={idx}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.5, delay: 0.7 + (idx * 0.1) }}
+                          transition={{ duration: 0.5, delay: 0.8 + (idx * 0.1) }}
+                          className="flex items-start gap-2"
                         >
-                          • {supp.name} - {supp.dosage} ({supp.timing})
+                          <span className="text-lime-500">•</span>
+                          <div>
+                            <span className="font-medium">{supp.name}</span>
+                            <p className="text-sm text-gray-400">
+                              {supp.dosage} - Best taken {supp.timing}
+                            </p>
+                          </div>
                         </motion.li>
                       ))}
+                    </ul>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.9 }}
+                    className="p-4 bg-lime-500/10 rounded-lg"
+                  >
+                    <h4 className="text-lime-500 font-bold mb-2">Additional Tips</h4>
+                    <ul className="text-gray-300 space-y-2">
+                      <motion.li
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 1 }}
+                        className="flex items-start gap-2"
+                      >
+                        <span className="text-lime-500">•</span>
+                        <span>Stay hydrated - aim for 3-4 liters of water daily</span>
+                      </motion.li>
+                      <motion.li
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 1.1 }}
+                        className="flex items-start gap-2"
+                      >
+                        <span className="text-lime-500">•</span>
+                        <span>Space meals 3-4 hours apart for optimal digestion</span>
+                      </motion.li>
+                      <motion.li
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 1.2 }}
+                        className="flex items-start gap-2"
+                      >
+                        <span className="text-lime-500">•</span>
+                        <span>Include protein in every meal for muscle maintenance</span>
+                      </motion.li>
                     </ul>
                   </motion.div>
                 </motion.div>
@@ -2365,6 +2544,9 @@ const Home = () => {
           </motion.div>
         </div>
       </motion.section>
+
+      {/* Footer Section */}
+      <Footer />
     </div>
   )
 }

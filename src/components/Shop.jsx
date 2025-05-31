@@ -1,286 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import Loader from './Loader';
-
-const products = [
-  {
-    id: 1,
-    name: "Inner Armour Mass Peak",
-    price: 89.99,
-    image: "/Images/InnerArmour.png",
-    category: "Mass Gainer",
-    rating: 4.8,
-    stock: 15,
-    description: "Premium mass gainer with 60g protein and 1250 calories per serving. Perfect for hard gainers looking to build serious mass.",
-    tags: ["mass-gainer", "muscle-growth", "weight-gain"],
-    nutrition: {
-      protein: "60g",
-      calories: "1250",
-      carbs: "252g",
-      servings: "20"
-    },
-    badge: "Best Seller"
-  },
-  {
-    id: 2,
-    name: "BioTech Hyper Mass",
-    price: 79.99,
-    image: "/Images/BiotechHypermass.png",
-    category: "Mass Gainer",
-    rating: 4.7,
-    stock: 12,
-    description: "Advanced formula mass gainer with added digestive enzymes for better nutrient absorption.",
-    tags: ["mass-gainer", "bulk", "digestive-enzymes"],
-    nutrition: {
-      protein: "52g",
-      calories: "1100",
-      carbs: "220g",
-      servings: "25"
-    },
-    badge: "Popular"
-  },
-  {
-    id: 3,
-    name: "Bad Ass Whey",
-    price: 54.99,
-    image: "/Images/bad-ass-whey.png",
-    category: "Whey Protein",
-    rating: 4.9,
-    stock: 20,
-    description: "Ultra-filtered whey protein isolate with 30g protein per serving. Zero sugar, zero compromises.",
-    tags: ["whey-protein", "isolate", "lean-muscle"],
-    nutrition: {
-      protein: "30g",
-      calories: "120",
-      bcaa: "7.5g",
-      servings: "30"
-    },
-    badge: "Premium"
-  },
-  {
-    id: 4,
-    name: "Critical Whey",
-    price: 49.99,
-    image: "/Images/applied-nutrition-critical-whey-2kg-539699.png",
-    category: "Whey Protein",
-    rating: 4.8,
-    stock: 18,
-    description: "Applied Nutrition's flagship whey protein with advanced amino acid profile.",
-    tags: ["whey-protein", "muscle-recovery", "amino-acids"],
-    nutrition: {
-      protein: "25g",
-      calories: "110",
-      bcaa: "5.5g",
-      servings: "33"
-    }
-  },
-  {
-    id: 5,
-    name: "NitroTech Whey Gold",
-    price: 59.99,
-    image: "/Images/nitrotech-whey-protein-the-supplements-factory-1.webp",
-    category: "Whey Protein",
-    rating: 4.9,
-    stock: 25,
-    description: "Premium whey protein isolate with peptides for enhanced muscle protein synthesis.",
-    tags: ["whey-protein", "isolate", "peptides"],
-    nutrition: {
-      protein: "28g",
-      calories: "130",
-      bcaa: "6.8g",
-      servings: "28"
-    },
-    badge: "Premium"
-  },
-  {
-    id: 6,
-    name: "Rule 1 Whey Blend",
-    price: 44.99,
-    image: "/Images/rule-1-whey-protein-the-supplements-factory-1.webp",
-    category: "Whey Protein",
-    rating: 4.7,
-    stock: 22,
-    description: "Clean and pure whey protein blend with natural flavoring.",
-    tags: ["whey-protein", "natural", "blend"],
-    nutrition: {
-      protein: "24g",
-      calories: "120",
-      bcaa: "5.5g",
-      servings: "30"
-    }
-  },
-  {
-    id: 7,
-    name: "BPI Creatine HD",
-    price: 29.99,
-    image: "/Images/BPI CREATINE.webp",
-    category: "Creatine",
-    rating: 4.8,
-    stock: 30,
-    description: "Micronized creatine monohydrate for enhanced absorption and better results.",
-    tags: ["creatine", "strength", "performance"],
-    nutrition: {
-      creatine: "5g",
-      servings: "60",
-      purity: "99.9%"
-    }
-  },
-  {
-    id: 8,
-    name: "Pure Creatine",
-    price: 24.99,
-    image: "/Images/PURE CREATINE.webp",
-    category: "Creatine",
-    rating: 4.9,
-    stock: 35,
-    description: "100% pure pharmaceutical grade creatine monohydrate.",
-    tags: ["creatine", "pure", "strength"],
-    nutrition: {
-      creatine: "5g",
-      servings: "100",
-      purity: "100%"
-    },
-    badge: "Best Value"
-  },
-  {
-    id: 9,
-    name: "Gold Standard Creatine",
-    price: 34.99,
-    image: "/Images/GOLD CREATINE.webp",
-    category: "Creatine",
-    rating: 4.9,
-    stock: 28,
-    description: "The gold standard in creatine supplementation. Pure, tested, trusted.",
-    tags: ["creatine", "premium", "tested"],
-    nutrition: {
-      creatine: "5g",
-      servings: "80",
-      purity: "99.9%"
-    },
-    badge: "Gold Standard"
-  },
-  {
-    id: 10,
-    name: "Galvanize Creatine",
-    price: 27.99,
-    image: "/Images/GALVANIZE CREATINE.png",
-    category: "Creatine",
-    rating: 4.7,
-    stock: 20,
-    description: "Advanced creatine formula with added electrolytes for better absorption.",
-    tags: ["creatine", "electrolytes", "hydration"],
-    nutrition: {
-      creatine: "5g",
-      electrolytes: "500mg",
-      servings: "50"
-    }
-  },
-  {
-    id: 11,
-    name: "Mass Tech Extreme",
-    price: 94.99,
-    image: "/Images/masstech-extreme-2000-the-supplements-factory-1.webp",
-    category: "Mass Gainer",
-    rating: 4.8,
-    stock: 10,
-    description: "Ultra-premium mass gainer with 80g protein and 2000 calories per serving.",
-    tags: ["mass-gainer", "extreme-calories", "protein"],
-    nutrition: {
-      protein: "80g",
-      calories: "2000",
-      carbs: "400g",
-      servings: "15"
-    },
-    badge: "Extreme Mass"
-  },
-  {
-    id: 12,
-    name: "Bad Ass Mass",
-    price: 84.99,
-    image: "/Images/bad-ass-mass-7-kg.png",
-    category: "Mass Gainer",
-    rating: 4.6,
-    stock: 15,
-    description: "High-calorie mass gainer with added digestive enzymes and creatine.",
-    tags: ["mass-gainer", "creatine", "enzymes"],
-    nutrition: {
-      protein: "55g",
-      calories: "1300",
-      carbs: "250g",
-      servings: "28"
-    }
-  },
-  {
-    id: 13,
-    name: "Critical Mass",
-    price: 89.99,
-    image: "/Images/CriticalMass6kg_Original_-Chocolate_3075aa45-cfe8-44d4-8855-595ca6b42fec_1000x1000.png",
-    category: "Mass Gainer",
-    rating: 4.7,
-    stock: 12,
-    description: "Premium mass gainer with time-released protein blend and complex carbs.",
-    tags: ["mass-gainer", "time-release", "complex-carbs"],
-    nutrition: {
-      protein: "50g",
-      calories: "1150",
-      carbs: "230g",
-      servings: "24"
-    },
-    badge: "New Formula"
-  },
-  {
-    id: 14,
-    name: "Dymatize Elite Whey",
-    price: 54.99,
-    image: "/Images/Dymatmize.png",
-    category: "Whey Protein",
-    rating: 4.8,
-    stock: 25,
-    description: "Elite whey protein isolate with enhanced absorption formula.",
-    tags: ["whey-protein", "isolate", "fast-absorption"],
-    nutrition: {
-      protein: "25g",
-      calories: "120",
-      bcaa: "5.7g",
-      servings: "30"
-    }
-  },
-  {
-    id: 15,
-    name: "BPI Sports Whey HD",
-    price: 49.99,
-    image: "/Images/bpi-sports-whey-hd.png",
-    category: "Whey Protein",
-    rating: 4.7,
-    stock: 20,
-    description: "Advanced whey protein complex with amino acid matrix.",
-    tags: ["whey-protein", "amino-matrix", "muscle"],
-    nutrition: {
-      protein: "25g",
-      calories: "130",
-      bcaa: "6g",
-      servings: "25"
-    }
-  },
-  {
-    id: 16,
-    name: "Cellucor C4",
-    price: 35.99,
-    image: "/Images/C4.png",
-    category: "Pre-Workout",
-    rating: 4.7,
-    stock: 20,
-    description: "A pre-workout supplement that helps you get the most out of your workouts.",
-    tags: ["Pre-Workout", "C4", "muscle"],
-    nutrition: {
-      protein: "25",
-      calories: "130",
-      bcaa: "0g",
-      servings: "25"
-    }
-  }
-];
+import Footer from './Footer';
 
 // Add new Particle component
 const Particle = ({ delay }) => {
@@ -359,8 +83,12 @@ const SearchBar = ({
   sortBy,
   onSortChange,
   isFiltersOpen,
-  onToggleFilters
+  onToggleFilters,
+  products
 }) => {
+  // Get unique categories from products
+  const categories = ['all', ...new Set(products.map(product => product.category))];
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
@@ -410,7 +138,7 @@ const SearchBar = ({
               <div>
                 <h3 className="text-white font-semibold mb-4">Categories</h3>
                 <div className="flex flex-wrap gap-2">
-                  {['all', ...new Set(products.map(product => product.category))].map((category) => (
+                  {categories.map((category) => (
                     <motion.button
                       key={category}
                       onClick={() => onCategoryChange(category)}
@@ -422,7 +150,7 @@ const SearchBar = ({
                           : 'bg-black/50 text-gray-300 hover:text-lime-500 border border-lime-500/20'
                       }`}
                     >
-                      {category}
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
                     </motion.button>
                   ))}
                 </div>
@@ -841,6 +569,12 @@ const ProductCard = ({ product, onQuickView, onAddToCart }) => {
     setTimeout(() => setAddToCartClicked(false), 1000);
   };
 
+  // Add error handling for images
+  const handleImageError = (e) => {
+    e.target.onerror = null; // Prevent infinite loop
+    e.target.src = "https://via.placeholder.com/300x300?text=Product+Image"; // Fallback image
+  };
+
   return (
     <motion.div
       layout
@@ -891,6 +625,7 @@ const ProductCard = ({ product, onQuickView, onAddToCart }) => {
             stiffness: 200,
             damping: 25
           }}
+          onError={handleImageError}
         />
         
         {/* View Controls */}
@@ -1566,28 +1301,76 @@ const AnimatedBackground = () => {
 };
 
 const Shop = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  // Group all useState hooks together
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('featured');
+  const [sortBy, setSortBy] = useState('default');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const { addToCart } = useCart();
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 10;
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  
+  const { addToCart } = useCart();
+  const productsPerPage = 10;
 
-  // Filter and sort products
-  const filteredProducts = products
-    .filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          product.description.toLowerCase().includes(searchQuery.toLowerCase());
+  // Firebase listener effect
+  useEffect(() => {
+    const productsRef = collection(db, 'products');
+    const unsubscribe = onSnapshot(productsRef, 
+      (snapshot) => {
+        const productsList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        console.log('Fetched products:', productsList); // Debug log
+        setProducts(productsList);
+        setFilteredProducts(productsList);
+        setLoading(false);
+      },
+      (error) => {
+        console.error('Error fetching products:', error);
+        setError('Failed to load products');
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  // Filter and sort effect
+  useEffect(() => {
+    console.log('Filtering products:', {
+      searchTerm,
+      selectedCategory,
+      sortBy,
+      totalProducts: products.length
+    });
+
+    const filtered = products.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesCategory = selectedCategory === 'all' || 
-                            product.category.toLowerCase() === selectedCategory.toLowerCase();
+                            (product.category && product.category.toLowerCase() === selectedCategory.toLowerCase());
+      
+      console.log('Product filter check:', {
+        name: product.name,
+        category: product.category,
+        matchesSearch,
+        matchesCategory
+      });
+      
       return matchesSearch && matchesCategory;
-    })
-    .sort((a, b) => {
+    });
+
+    console.log('Filtered products:', filtered.length);
+
+    const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
           return a.price - b.price;
@@ -1600,10 +1383,15 @@ const Shop = () => {
       }
     });
 
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const startIndex = (currentPage - 1) * productsPerPage;
-  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
+    console.log('Sorted products:', sorted.length);
+    setFilteredProducts(sorted);
+    setCurrentPage(1);
+  }, [products, searchTerm, selectedCategory, sortBy]);
+
+  // Reset page effect
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, sortBy]);
 
   const handleQuickView = (product) => {
     setSelectedProduct(product);
@@ -1621,82 +1409,106 @@ const Shop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory, sortBy]);
+  if (loading) {
+    return <Loader />;
+  }
+
+  if (error) {
+    return <div className="text-red-500 text-center p-4">{error}</div>;
+  }
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const endIndex = startIndex + productsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
   return (
-    <div className="min-h-screen relative">
-      {/* Animated Background */}
-      <AnimatedBackground />
+    <div className="min-h-screen flex flex-col">
+      {/* Background Effects */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <AnimatedBackground />
+      </div>
 
       {/* Main Content */}
-      <div className="relative py-12 px-4 sm:px-6 lg:px-8">
-        <div className="relative max-w-7xl mx-auto">
-          {/* Search and Filters */}
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-            isFiltersOpen={isFiltersOpen}
-            onToggleFilters={() => setIsFiltersOpen(!isFiltersOpen)}
+      <div className="flex-grow relative py-12 px-4 sm:px-6 lg:px-8">
+        {/* Search and Filters */}
+        <SearchBar
+          value={searchTerm}
+          onChange={setSearchTerm}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          isFiltersOpen={isFiltersOpen}
+          onToggleFilters={() => setIsFiltersOpen(!isFiltersOpen)}
+          products={products}
+        />
+
+        {/* Products Grid */}
+        <motion.div
+          layout
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+        >
+          <AnimatePresence mode="wait">
+            {currentProducts.map((product) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ProductCard
+                  product={product}
+                  onQuickView={handleQuickView}
+                  onAddToCart={handleAddToCart}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
           />
-
-          {/* Products Grid */}
-          <motion.div
-            layout
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
-          >
-            <AnimatePresence mode="wait">
-              {paginatedProducts.map((product) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <ProductCard
-                    product={product}
-                    onQuickView={handleQuickView}
-                    onAddToCart={handleAddToCart}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
-          )}
-        </div>
+        )}
       </div>
 
       {/* Quick View Modal */}
       <AnimatePresence>
-        {isQuickViewOpen && selectedProduct && (
+        {selectedProduct && (
           <QuickViewModal
             product={selectedProduct}
-            onClose={() => setIsQuickViewOpen(false)}
+            onClose={() => setSelectedProduct(null)}
             onAddToCart={handleAddToCart}
           />
         )}
       </AnimatePresence>
 
-      {/* Toast */}
+      {/* Toast Notification */}
       <AnimatePresence>
         {showToast && (
-          <Toast message={toastMessage} onClose={() => setShowToast(false)} />
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-4 right-4 bg-lime-500 text-black px-6 py-3 rounded-lg shadow-lg"
+            onAnimationComplete={() => {
+              setTimeout(() => setShowToast(false), 2000);
+            }}
+          >
+            {toastMessage}
+          </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
@@ -1728,4 +1540,4 @@ const styleSheet = document.createElement("style");
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
-export default Shop; 
+export default Shop;

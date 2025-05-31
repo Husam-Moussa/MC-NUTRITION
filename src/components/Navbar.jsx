@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { useCart } from '../context/CartContext';
+import { auth } from '../firebase/config';
+import { useAuth } from '../context/AuthContext';
+import Cart from './Cart';
 
 // Neon Line Effect
 const NeonLineEffect = () => (
@@ -132,41 +135,22 @@ const CartIcon = ({ count }) => {
       className="relative group"
       onClick={handleClick}
     >
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-lime-500/30 to-lime-400/30 rounded-xl blur-lg"
-        animate={{
-          scale: [1, 1.1, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{ duration: 2, repeat: Infinity }}
-      />
-      <div className="relative overflow-hidden bg-gradient-to-r from-lime-500 to-lime-400 px-6 py-2.5 rounded-xl">
-        {isRippling && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0.5 }}
-            animate={{ scale: 2, opacity: 0 }}
-            transition={{ duration: 0.6 }}
-            className="absolute inset-0 bg-white/30 rounded-full"
-            style={{ transformOrigin: 'center' }}
-          />
-        )}
-        <div className="flex items-center gap-2 text-black font-semibold">
+      <div className="relative group p-2.5">
+        <div className="absolute inset-0 bg-black/40 rounded-lg border border-lime-500/20 group-hover:border-lime-500/40 transition-all duration-300" />
+        <div className="relative w-6 h-6 flex items-center justify-center">
           <motion.svg
-            className="w-5 h-5"
+            className="w-5 h-5 text-lime-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            whileHover={{ rotate: [0, -10, 10, -10, 0] }}
-            transition={{ duration: 0.5 }}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </motion.svg>
-          <span className="relative z-10">Cart</span>
           {count > 0 && (
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
-              className="min-w-[20px] h-5 px-1.5 bg-black text-lime-500 rounded-full flex items-center justify-center text-sm font-bold"
+              className="absolute -top-2 -right-2 min-w-[18px] h-4.5 px-1 bg-lime-500 text-black rounded-full flex items-center justify-center text-xs font-medium"
             >
               {count}
             </motion.div>
@@ -304,6 +288,15 @@ const Navbar = () => {
   const location = useLocation();
   const { cartItems, getCartItemsCount, getCartTotal, updateCartQuantity, removeFromCart } = useCart();
   const cartCount = getCartItemsCount();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      // Handle user state changes
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -319,12 +312,20 @@ const Navbar = () => {
     setIsCartOpen(false);
   }, [location]);
 
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'Shop', path: '/shop' },
-    { name: 'About', path: '/about' },
-    { name: 'Contact', path: '/contact' }
-  ];
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
+  };
+
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+
+  const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <header className="h-[80px] md:h-[100px]">
@@ -369,21 +370,40 @@ const Navbar = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                {navLinks.map((link) => (
-                  <NavLink
-                    key={link.path}
-                    to={link.path}
-                    isActive={location.pathname === link.path}
-                  >
-                    {link.name}
-                  </NavLink>
-                ))}
+                <NavLink
+                  key="/"
+                  to="/"
+                  isActive={isActive('/')}
+                >
+                  Home
+                </NavLink>
+                <NavLink
+                  key="/shop"
+                  to="/shop"
+                  isActive={isActive('/shop')}
+                >
+                  Shop
+                </NavLink>
+                <NavLink
+                  key="/about"
+                  to="/about"
+                  isActive={isActive('/about')}
+                >
+                  About
+                </NavLink>
+                <NavLink
+                  key="/contact"
+                  to="/contact"
+                  isActive={isActive('/contact')}
+                >
+                  Contact
+                </NavLink>
               </motion.div>
             </div>
 
             {/* Cart Button */}
             <motion.div 
-              className="flex items-center"
+              className="flex items-center gap-2"
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
@@ -400,9 +420,54 @@ const Navbar = () => {
                 </button>
               </motion.div>
 
+              {/* Auth Buttons */}
+              {!user ? (
+                <Link to="/login" className="relative group hidden md:block">
+                  <motion.div
+                    whileTap={{ scale: 0.95 }}
+                    className="relative group"
+                  >
+                    <div className="relative group p-2.5">
+                      <div className="absolute inset-0 bg-black/40 rounded-lg border border-lime-500/20 group-hover:border-lime-500/40 transition-all duration-300" />
+                      <div className="relative w-6 h-6 flex items-center justify-center">
+                        <motion.svg
+                          className="w-5 h-5 text-lime-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </motion.svg>
+                      </div>
+                    </div>
+                  </motion.div>
+                </Link>
+              ) : (
+                <>
+                  {user.email === 'admin@mcnutrition.com' && (
+                    <Link to="/admin" className="px-3 py-1.5 bg-black/40 border border-lime-500/20 hover:border-lime-500/40 text-lime-500 rounded-lg font-medium transition-all duration-300 hidden md:inline-block">Admin</Link>
+                  )}
+                  <Link to="/user" className="relative group hidden md:block">
+                    <motion.div
+                      whileTap={{ scale: 0.95 }}
+                      className="relative group"
+                    >
+                      <div className="relative group p-2.5">
+                        <div className="absolute inset-0 bg-black/40 rounded-lg border border-lime-500/20 group-hover:border-lime-500/40 transition-all duration-300" />
+                        <div className="relative w-6 h-6 flex items-center justify-center">
+                          <span className="text-sm font-medium text-lime-500">
+                            {user.displayName?.[0] || user.email?.[0] || 'U'}
+                          </span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </Link>
+                </>
+              )}
+
               {/* Mobile Menu Button */}
               <motion.div 
-                className="ml-6 md:hidden"
+                className="ml-2 md:hidden"
                 initial={{ x: 20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.5 }}
@@ -462,27 +527,143 @@ const Navbar = () => {
                 exit={{ opacity: 0 }}
               />
               <div className="relative px-6 pt-4 pb-8 space-y-6">
-                {navLinks.map((link, index) => (
-                  <motion.div
-                    key={link.path}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="border-b border-lime-500/10 pb-4"
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: 0.1 }}
+                  className="border-b border-lime-500/10 pb-4"
+                >
+                  <Link
+                    to="/"
+                    className={`block text-2xl font-medium transition-colors ${
+                      isActive('/') ? 'text-lime-500' : 'text-gray-300 active:text-lime-500'
+                    }`}
                   >
+                    Home
+                  </Link>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: 0.15 }}
+                  className="border-b border-lime-500/10 pb-4"
+                >
+                  <Link
+                    to="/shop"
+                    className={`block text-2xl font-medium transition-colors ${
+                      isActive('/shop') ? 'text-lime-500' : 'text-gray-300 active:text-lime-500'
+                    }`}
+                  >
+                    Shop
+                  </Link>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: 0.3 }}
+                  className="border-b border-lime-500/10 pb-4"
+                >
+                  <Link
+                    to="/about"
+                    className={`block text-2xl font-medium transition-colors ${
+                      isActive('/about') ? 'text-lime-500' : 'text-gray-300 active:text-lime-500'
+                    }`}
+                  >
+                    About
+                  </Link>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: 0.4 }}
+                  className="border-b border-lime-500/10 pb-4"
+                >
+                  <Link
+                    to="/contact"
+                    className={`block text-2xl font-medium transition-colors ${
+                      isActive('/contact') ? 'text-lime-500' : 'text-gray-300 active:text-lime-500'
+                    }`}
+                  >
+                    Contact
+                  </Link>
+                </motion.div>
+                {/* Account Section in Mobile Menu */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: 0.5 }}
+                  className="border-b border-lime-500/10 pb-4"
+                >
+                  {!user ? (
                     <Link
-                      to={link.path}
-                      className={`block text-2xl font-medium transition-colors ${
-                        location.pathname === link.path 
-                          ? 'text-lime-500' 
-                          : 'text-gray-300 active:text-lime-500'
-                      }`}
+                      to="/login"
+                      className="flex items-center gap-2 text-2xl font-medium text-gray-300 hover:text-lime-500 transition-colors"
                     >
-                      {link.name}
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-6 w-6" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
+                        />
+                      </svg>
+                      Account
                     </Link>
-                  </motion.div>
-                ))}
+                  ) : (
+                    <div className="space-y-4">
+                      {user.email === 'admin@mcnutrition.com' && (
+                        <Link
+                          to="/admin"
+                          className="block text-2xl font-medium text-gray-300 hover:text-lime-500 transition-colors"
+                        >
+                          Admin
+                        </Link>
+                      )}
+                      <Link
+                        to="/user"
+                        className="flex items-center gap-2 text-2xl font-medium text-gray-300 hover:text-lime-500 transition-colors"
+                      >
+                        <div className="w-8 h-8 bg-lime-500/20 rounded-full flex items-center justify-center">
+                          <span className="text-lg font-bold text-lime-500">
+                            {user.displayName?.[0] || user.email?.[0] || 'U'}
+                          </span>
+                        </div>
+                        My Account
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 text-2xl font-medium text-gray-300 hover:text-lime-500 transition-colors"
+                      >
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          className="h-6 w-6" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
+                          />
+                        </svg>
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
               </div>
             </motion.div>
           )}
@@ -491,74 +672,7 @@ const Navbar = () => {
         {/* Cart Dropdown */}
         <AnimatePresence>
           {isCartOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="absolute right-4 top-full mt-4 w-96 bg-black/95 backdrop-blur-lg border border-lime-500/10 rounded-xl shadow-xl overflow-hidden"
-            >
-              <div className="p-4 border-b border-lime-500/10">
-                <h2 className="text-lg font-bold text-white">Shopping Cart</h2>
-              </div>
-              <div className="max-h-96 overflow-y-auto">
-                <AnimatePresence mode="popLayout">
-                  {cartItems.map((item) => (
-                    <motion.div
-                      key={item.id}
-                      layout
-                      initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                      transition={{ 
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 25,
-                        mass: 1
-                      }}
-                    >
-                      <CartItem
-                        key={item.id}
-                        item={item}
-                        onRemove={removeFromCart}
-                        onUpdateQuantity={updateCartQuantity}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                {cartItems.length === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="p-8 text-center text-gray-400"
-                  >
-                    Your cart is empty
-                  </motion.div>
-                )}
-              </div>
-              {cartItems.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-4 bg-black/50 border-t border-lime-500/10"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-white font-bold">Total:</span>
-                    <span className="text-lime-500 font-bold text-xl">
-                      ${getCartTotal().toFixed(2)}
-                    </span>
-                  </div>
-                  <a href="https://wa.me/+96103903800?text=I%20want%20to%20order">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full bg-lime-500 text-black font-bold py-3 rounded-lg hover:bg-lime-600 transition-colors"
-                  >
-                    Checkout
-                  </motion.button>
-                  </a>
-                </motion.div>
-              )}
-            </motion.div>
+            <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
           )}
         </AnimatePresence>
       </motion.nav>

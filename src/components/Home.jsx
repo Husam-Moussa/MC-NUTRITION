@@ -7,179 +7,6 @@ import { auth } from '../firebase/config'
 import Footer from './Footer'
 
 // SVG Components for animated background
-const CartIcon = () => (
-  <svg 
-    viewBox="0 0 24 24" 
-    className="w-7 h-7"
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2"
-    strokeLinecap="round" 
-    strokeLinejoin="round"
-  >
-    <circle cx="9" cy="21" r="1" />
-    <circle cx="20" cy="21" r="1" />
-    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-  </svg>
-)
-
-// Floating Cart Preview Component
-const FloatingCart = ({ items, onUpdateQuantity, onRemoveItem }) => {
-  const [isOpen, setIsOpen] = useState(false)
-
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-
-  return (
-    <div className="fixed right-4 bottom-4 z-50">
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        className="relative"
-      >
-        <motion.button
-          onClick={() => setIsOpen(!isOpen)}
-          className="bg-lime-500 text-black w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:bg-lime-600 transition-all duration-300 group"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <motion.div
-            animate={{
-              rotate: isOpen ? 180 : 0
-            }}
-            transition={{ duration: 0.3 }}
-          >
-            <CartIcon />
-          </motion.div>
-          {items.length > 0 && (
-            <motion.div
-              className="absolute -top-2 -right-2 bg-black text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 20
-              }}
-            >
-              {items.reduce((sum, item) => sum + item.quantity, 0)}
-            </motion.div>
-          )}
-          <motion.div
-            className="absolute inset-0 rounded-full border-2 border-lime-500"
-            initial={{ scale: 1 }}
-            animate={{ scale: 1.1, opacity: 0 }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              ease: "easeOut"
-            }}
-          />
-        </motion.button>
-
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="absolute bottom-20 right-0 w-80 bg-black border border-lime-500/20 rounded-xl shadow-xl overflow-hidden backdrop-blur-lg"
-            >
-              <div className="p-4 border-b border-lime-500/20">
-                <h3 className="text-white font-bold flex items-center gap-2">
-                  <CartIcon />
-                  Your Cart
-                </h3>
-              </div>
-              <div className="p-4 space-y-4">
-                {items.length === 0 ? (
-                  <div className="text-center text-gray-400 py-8">
-                    Your cart is empty
-                  </div>
-                ) : (
-                  items.map((item) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center justify-between group"
-                    >
-                      <div>
-                        <h4 className="text-white group-hover:text-lime-500 transition-colors">{item.name}</h4>
-                        <div className="flex items-center gap-3 text-gray-400 text-sm">
-                          <div className="flex items-center gap-2">
-                            <button 
-                              className="hover:text-lime-500 transition-colors"
-                              onClick={() => onUpdateQuantity(item.id, Math.max(0, item.quantity - 1))}
-                            >
-                              -
-                            </button>
-                            <span>Qty: {item.quantity}</span>
-                            <button 
-                              className="hover:text-lime-500 transition-colors"
-                              onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                            >
-                              +
-                            </button>
-                          </div>
-                          <button 
-                            className="opacity-0 group-hover:opacity-100 text-red-500 transition-all"
-                            onClick={() => onRemoveItem(item.id)}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                      <p className="text-lime-500 font-bold">${(item.price * item.quantity).toFixed(2)}</p>
-                    </motion.div>
-                  ))
-                )}
-              </div>
-              {items.length > 0 && (
-                <motion.div 
-                  className="p-4 bg-black/50 border-t border-lime-500/20"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-white font-bold">Total:</span>
-                    <span className="text-lime-500 font-bold text-xl">${total.toFixed(2)}</span>
-                  </div>
-                  <a href="https://wa.me/+96103903800?text=I%20want%20to%20order">
-                  <motion.button 
-                    className="w-full bg-lime-500 text-black font-bold py-3 rounded hover:bg-lime-600 transition-all flex items-center justify-center gap-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Checkout
-                    <svg 
-                      className="w-5 h-5" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M14 5l7 7m0 0l-7 7m7-7H3"
-                      />
-                    </svg>
-                    </motion.button>
-                  </a>
-                 
-                </motion.div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    </div>
-  )
-}
-
-// SVG Components for animated background
 const ProteinMolecule = () => (
   <svg viewBox="0 0 100 100" className="w-full h-full">
     <circle cx="50" cy="50" r="20" className="fill-current" />
@@ -276,6 +103,7 @@ const ShakeIcon = () => (
 const ProductCard = ({ product }) => {
   const [isFlipped, setIsFlipped] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const { addToCart } = useCart() // Add cart context
 
   return (
     <motion.div
@@ -381,6 +209,7 @@ const ProductCard = ({ product }) => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={() => addToCart(product)}
                   className="text-black bg-lime-500 hover:bg-lime-600 px-6 py-3 rounded-lg font-semibold flex items-center gap-2"
                 >
                   Add to Cart
@@ -390,7 +219,7 @@ const ProductCard = ({ product }) => {
                   onClick={() => setIsFlipped(true)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="text-lime-500 hover:text-lime-400 px-4 py-3 rounded-lg font-semibold border border-lime-500/20 hover:border-lime-500/40"
+                  className="hidden lg:block text-lime-500 hover:text-lime-400 px-4 py-3 rounded-lg font-semibold border border-lime-500/20 hover:border-lime-500/40"
                 >
                   Details
                 </motion.button>
@@ -699,7 +528,9 @@ const getSupplementRecommendations = (goal, restrictions) => {
   });
 };
 
-const QuickView = ({ product, onClose, onAddToCart, isFavorite, onToggleFavorite }) => {
+const QuickView = ({ product, onClose, isFavorite, onToggleFavorite }) => {
+  const { addToCart } = useCart() // Add cart context
+  
   if (!product) return null;
 
   return (
@@ -707,7 +538,7 @@ const QuickView = ({ product, onClose, onAddToCart, isFavorite, onToggleFavorite
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden lg:flex items-center justify-center p-4"
       onClick={onClose}
     >
       <motion.div
@@ -788,7 +619,10 @@ const QuickView = ({ product, onClose, onAddToCart, isFavorite, onToggleFavorite
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => onAddToCart(product)}
+              onClick={() => {
+                addToCart({ ...product, flavor: selectedFlavor, size: selectedSize });
+                onClose();
+              }}
               className="w-full bg-lime-500 text-black py-4 rounded-xl font-bold text-lg hover:bg-lime-400 transition-colors flex items-center justify-center gap-2"
             >
               Add to Cart
@@ -817,41 +651,9 @@ const QuickView = ({ product, onClose, onAddToCart, isFavorite, onToggleFavorite
 
 const Home = () => {
   const [hoveredProduct, setHoveredProduct] = useState(null)
-  const [cartItems, setCartItems] = useState([])
   const [favorites, setFavorites] = useState([])
   const [quickViewProduct, setQuickViewProduct] = useState(null)
-
-  // Cart handlers
-  const addToCart = (product, quantity = 1) => {
-    setCartItems(prev => {
-      const existingItem = prev.find(item => item.id === product.id)
-      if (existingItem) {
-        return prev.map(item => 
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        )
-      }
-      return [...prev, { ...product, quantity: quantity }]
-    })
-  }
-
-  const updateCartQuantity = (productId, newQuantity) => {
-    setCartItems(prev => {
-      if (newQuantity === 0) {
-        return prev.filter(item => item.id !== productId)
-      }
-      return prev.map(item => 
-        item.id === productId 
-          ? { ...item, quantity: newQuantity }
-          : item
-      )
-    })
-  }
-
-  const removeFromCart = (productId) => {
-    setCartItems(prev => prev.filter(item => item.id !== productId))
-  }
+  const { addToCart } = useCart() // Use cart context instead of local state
 
   const toggleFavorite = (productId) => {
     setFavorites(prev => 
@@ -1162,11 +964,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-black overflow-x-hidden">
-      <FloatingCart 
-        items={cartItems} 
-        onUpdateQuantity={updateCartQuantity} 
-        onRemoveItem={removeFromCart} 
-      />
       {/* Hero Section */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -1960,7 +1757,7 @@ const Home = () => {
               {
                 name: "Husam Moussa",
                 rating: 5,
-                image: "/Images/Me.jpg",
+                image: "/Images/IMG_8387.jpeg",
                 review: "Incredible results with the Pro Whey Isolate. Gained 5lbs of lean muscle in just 2 months!",
                 product: "Pro Whey Isolate"
               },

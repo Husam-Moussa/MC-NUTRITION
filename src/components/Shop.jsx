@@ -5,6 +5,8 @@ import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import Loader from './Loader';
 import Footer from './Footer';
+import { staticProducts } from '../data/staticProducts';
+import { useNavigate } from 'react-router-dom';
 
 // Add new Particle component
 const Particle = ({ delay }) => {
@@ -525,11 +527,12 @@ const ProductIcons = ({ category, rating, stock }) => {
 // Update the ProductCard component
 const ProductCard = ({ product, onQuickView, onAddToCart }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [activeView, setActiveView] = useState(null); // 'nutrition' | 'benefits' | null
+  const [activeView, setActiveView] = useState(null);
   const [selectedFlavor, setSelectedFlavor] = useState(product.flavors?.[0]);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0]);
   const [tiltValues, setTiltValues] = useState({ x: 0, y: 0 });
   const [addToCartClicked, setAddToCartClicked] = useState(false);
+  const navigate = useNavigate();
 
   const handleMouseMove = (e) => {
     if (!isHovered) return;
@@ -537,6 +540,13 @@ const ProductCard = ({ product, onQuickView, onAddToCart }) => {
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
     setTiltValues({ x: x * 20, y: y * -20 });
+  };
+
+  const handleProductClick = () => {
+    // On mobile and tablet, navigate to product details
+    if (window.innerWidth < 1024) {
+      navigate(`/product/${product.id}`, { state: { product } });
+    }
   };
 
   const handleAddToCart = (e) => {
@@ -593,21 +603,28 @@ const ProductCard = ({ product, onQuickView, onAddToCart }) => {
         setActiveView(null);
         setTiltValues({ x: 0, y: 0 });
       }}
+      onClick={handleProductClick}
       className="relative bg-black/50 backdrop-blur border border-lime-500/20 rounded-lg overflow-hidden cursor-pointer transform-gpu"
     >
-      {/* Product Icons */}
-      <ProductIcons 
-        category={product.category}
-        rating={product.rating}
-        stock={product.stock}
-      />
+      {/* Product Icons - Only visible on large screens */}
+      <div className="hidden lg:block">
+        <ProductIcons 
+          category={product.category}
+          rating={product.rating}
+          stock={product.stock}
+        />
+      </div>
 
-      {/* Training Type Indicators */}
-      <TrainingTypeIndicator types={product.trainingTypes || ['Strength', 'Muscle Gain']} />
+      {/* Training Type Indicators - Only visible on large screens */}
+      <div className="hidden lg:block">
+        <TrainingTypeIndicator types={product.trainingTypes || ['Strength', 'Muscle Gain']} />
+      </div>
 
-      {/* Achievement Badge */}
+      {/* Achievement Badge - Only visible on large screens */}
       {product.achievement && (
-        <AchievementBadge achievement={product.achievement} />
+        <div className="hidden lg:block">
+          <AchievementBadge achievement={product.achievement} />
+        </div>
       )}
 
       {/* Product Image Container */}
@@ -628,84 +645,65 @@ const ProductCard = ({ product, onQuickView, onAddToCart }) => {
           onError={handleImageError}
         />
         
-        {/* View Controls */}
-       {/* View Controls */}
-<motion.div
-  className="absolute inset-0 hidden lg:flex bg-black/60 items-center justify-center gap-4"
-  initial={{ opacity: 0 }}
-  animate={{ opacity: isHovered ? 1 : 0 }}
-  transition={{ duration: 0.2 }}
->
-  <motion.button
-    onClick={(e) => {
-      e.stopPropagation();
-      onQuickView(product);
-    }}
-    className="bg-lime-500 text-black px-4 py-2 rounded-lg font-semibold text-sm"
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-  >
-    Quick View
-  </motion.button>
-  <motion.button
-    onClick={(e) => {
-      e.stopPropagation();
-      setActiveView(activeView === 'nutrition' ? null : 'nutrition');
-    }}
-    className={`backdrop-blur text-white px-4 py-2 rounded-lg font-semibold text-sm ${
-      activeView === 'nutrition' ? 'bg-lime-500 text-black' : 'bg-white/20'
-    }`}
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-  >
-    Nutrition
-  </motion.button>
-  <motion.button
-    onClick={(e) => {
-      e.stopPropagation();
-      setActiveView(activeView === 'benefits' ? null : 'benefits');
-    }}
-    className={`backdrop-blur text-white px-4 py-2 rounded-lg font-semibold text-sm ${
-      activeView === 'benefits' ? 'bg-lime-500 text-black' : 'bg-white/20'
-    }`}
-    whileHover={{ scale: 1.05 }}
-    whileTap={{ scale: 0.95 }}
-  >
-    Benefits
-  </motion.button>
-</motion.div>
-
-        {/* Overlays */}
-        <AnimatePresence>
-          {activeView === 'nutrition' && (
-            <NutritionInfo nutrition={product.nutrition} />
-          )}
-          {activeView === 'benefits' && (
-            <ProductBenefits benefits={product.benefits || [
-              'Enhances Muscle Growth',
-              'Improves Recovery Time',
-              'Increases Strength',
-              'Supports Lean Mass'
-            ]} />
-          )}
-        </AnimatePresence>
-
-        {/* Stock Level */}
-        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="text-white">Stock Level</span>
-            <span className={`font-bold ${
-              product.stock < 10 ? 'text-red-500' :
-              product.stock < 20 ? 'text-yellow-500' :
-              'text-green-500'
-            }`}>
-              {product.stock} units
-            </span>
-          </div>
-          <StockIndicator stock={product.stock} />
+        {/* View Controls - Only visible on large screens */}
+        <div className="absolute inset-0 hidden lg:flex items-center justify-center gap-4 bg-black/60 opacity-0 hover:opacity-100 transition-opacity">
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation();
+              onQuickView(product);
+            }}
+            className="bg-lime-500 text-black px-4 py-2 rounded-lg font-semibold text-sm"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Quick View
+          </motion.button>
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveView(activeView === 'nutrition' ? null : 'nutrition');
+            }}
+            className={`backdrop-blur text-white px-4 py-2 rounded-lg font-semibold text-sm ${
+              activeView === 'nutrition' ? 'bg-lime-500 text-black' : 'bg-white/20'
+            }`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Nutrition
+          </motion.button>
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveView(activeView === 'benefits' ? null : 'benefits');
+            }}
+            className={`backdrop-blur text-white px-4 py-2 rounded-lg font-semibold text-sm ${
+              activeView === 'benefits' ? 'bg-lime-500 text-black' : 'bg-white/20'
+            }`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Benefits
+          </motion.button>
         </div>
 
-        {/* Floating Price Tag */}
+        {/* Overlays - Only visible on large screens */}
+        <div className="hidden lg:block">
+          <AnimatePresence>
+            {activeView === 'nutrition' && (
+              <NutritionInfo nutrition={product.nutrition} />
+            )}
+            {activeView === 'benefits' && (
+              <ProductBenefits benefits={product.benefits || [
+                'Enhances Muscle Growth',
+                'Improves Recovery Time',
+                'Increases Strength',
+                'Supports Lean Mass'
+              ]} />
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Mobile Price Tag - Always visible */}
         <motion.div
           className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm text-lime-500 px-3 py-1 rounded-full text-sm font-bold"
           initial={{ opacity: 0, y: -10 }}
@@ -713,7 +711,6 @@ const ProductCard = ({ product, onQuickView, onAddToCart }) => {
           whileHover={{ scale: 1.1 }}
         >
           ${product.price}
-          {selectedSize && <span className="text-xs ml-1">/ {selectedSize}</span>}
         </motion.div>
       </div>
 
@@ -758,7 +755,6 @@ const ProductCard = ({ product, onQuickView, onAddToCart }) => {
                 ★
               </motion.span>
             ))}
-            <span className="text-gray-400 text-xs ml-1">{product.rating}</span>
           </motion.div>
         </div>
 
@@ -783,47 +779,18 @@ const ProductCard = ({ product, onQuickView, onAddToCart }) => {
         </motion.p>
 
         {/* Add to Cart Button */}
-        <motion.div 
-          className="pt-2 border-t border-lime-500/10"
-          animate={{
-            borderColor: isHovered ? "rgba(132, 204, 22, 0.3)" : "rgba(132, 204, 22, 0.1)"
-          }}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleAddToCart}
+          className="w-full bg-lime-500 text-black py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 relative overflow-hidden"
+          animate={addToCartClicked ? {
+            scale: [1, 0.9, 1.1, 1],
+            transition: { duration: 0.4 }
+          } : {}}
         >
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleAddToCart}
-            className="w-full bg-lime-500 text-black py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 relative overflow-hidden"
-            animate={addToCartClicked ? {
-              scale: [1, 0.9, 1.1, 1],
-              transition: { duration: 0.4 }
-            } : {}}
-          >
-            <motion.div
-              className="absolute inset-0 bg-white/30"
-              initial={{ x: '-100%' }}
-              animate={addToCartClicked ? { x: '100%' } : {}}
-              transition={{ duration: 0.3 }}
-            />
-            <span className="relative z-10">Add to Cart</span>
-            <motion.svg
-              className="w-4 h-4 relative z-10"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              animate={{ 
-                x: isHovered ? [0, 3, 0] : 0,
-                scale: addToCartClicked ? [1, 1.2, 0.8, 1] : 1
-              }}
-              transition={{ 
-                duration: addToCartClicked ? 0.4 : 1,
-                repeat: addToCartClicked ? 0 : Infinity
-              }}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </motion.svg>
-          </motion.button>
-        </motion.div>
+          Add to Cart
+        </motion.button>
       </motion.div>
     </motion.div>
   );
@@ -1324,18 +1291,23 @@ const Shop = () => {
     const productsRef = collection(db, 'products');
     const unsubscribe = onSnapshot(productsRef, 
       (snapshot) => {
-        const productsList = snapshot.docs.map(doc => ({
+        const dynamicProducts = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
-        console.log('Fetched products:', productsList); // Debug log
-        setProducts(productsList);
-        setFilteredProducts(productsList);
+        // Combine dynamic and static products
+        const allProducts = [...dynamicProducts, ...staticProducts];
+        console.log('Fetched products:', allProducts);
+        setProducts(allProducts);
+        setFilteredProducts(allProducts);
         setLoading(false);
       },
       (error) => {
         console.error('Error fetching products:', error);
-        setError('Failed to load products');
+        // Even if dynamic products fail to load, show static products
+        setProducts(staticProducts);
+        setFilteredProducts(staticProducts);
+        setError('Failed to load some products');
         setLoading(false);
       }
     );

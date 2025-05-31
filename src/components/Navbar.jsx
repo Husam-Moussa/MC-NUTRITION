@@ -521,149 +521,198 @@ const Navbar = () => {
               className="md:hidden relative"
             >
               <motion.div
-                className="absolute inset-0 bg-gradient-to-b from-black/90 to-black backdrop-blur"
+                className="absolute inset-0 bg-gradient-to-b from-black/90 to-black backdrop-blur-lg"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               />
               <div className="relative px-6 pt-4 pb-8 space-y-6">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: 0.1 }}
-                  className="border-b border-lime-500/10 pb-4"
-                >
-                  <Link
-                    to="/"
-                    className={`block text-2xl font-medium transition-colors ${
-                      isActive('/') ? 'text-lime-500' : 'text-gray-300 active:text-lime-500'
-                    }`}
+                {/* User Profile Section (if logged in) */}
+                {user && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ delay: 0.1 }}
+                    className="flex items-center gap-4 p-4 mb-6 bg-lime-500/5 rounded-xl border border-lime-500/10"
                   >
-                    Home
-                  </Link>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: 0.15 }}
-                  className="border-b border-lime-500/10 pb-4"
-                >
-                  <Link
-                    to="/shop"
-                    className={`block text-2xl font-medium transition-colors ${
-                      isActive('/shop') ? 'text-lime-500' : 'text-gray-300 active:text-lime-500'
-                    }`}
-                  >
-                    Shop
-                  </Link>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: 0.3 }}
-                  className="border-b border-lime-500/10 pb-4"
-                >
-                  <Link
-                    to="/about"
-                    className={`block text-2xl font-medium transition-colors ${
-                      isActive('/about') ? 'text-lime-500' : 'text-gray-300 active:text-lime-500'
-                    }`}
-                  >
-                    About
-                  </Link>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: 0.4 }}
-                  className="border-b border-lime-500/10 pb-4"
-                >
-                  <Link
-                    to="/contact"
-                    className={`block text-2xl font-medium transition-colors ${
-                      isActive('/contact') ? 'text-lime-500' : 'text-gray-300 active:text-lime-500'
-                    }`}
-                  >
-                    Contact
-                  </Link>
-                </motion.div>
-                {/* Account Section in Mobile Menu */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: 0.5 }}
-                  className="border-b border-lime-500/10 pb-4"
-                >
-                  {!user ? (
-                    <Link
-                      to="/login"
-                      className="flex items-center gap-2 text-2xl font-medium text-gray-300 hover:text-lime-500 transition-colors"
-                    >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-6 w-6" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={2} 
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
-                        />
-                      </svg>
-                      Account
-                    </Link>
-                  ) : (
-                    <div className="space-y-4">
-                      {user.email === 'admin@mcnutrition.com' && (
-                        <Link
-                          to="/admin"
-                          className="block text-2xl font-medium text-gray-300 hover:text-lime-500 transition-colors"
-                        >
-                          Admin
-                        </Link>
-                      )}
-                      <Link
-                        to="/user"
-                        className="flex items-center gap-2 text-2xl font-medium text-gray-300 hover:text-lime-500 transition-colors"
-                      >
-                        <div className="w-8 h-8 bg-lime-500/20 rounded-full flex items-center justify-center">
-                          <span className="text-lg font-bold text-lime-500">
-                            {user.displayName?.[0] || user.email?.[0] || 'U'}
-                          </span>
-                        </div>
-                        My Account
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-2 text-2xl font-medium text-gray-300 hover:text-lime-500 transition-colors"
-                      >
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          className="h-6 w-6" 
-                          fill="none" 
-                          viewBox="0 0 24 24" 
-                          stroke="currentColor"
-                        >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={2} 
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
-                          />
-                        </svg>
-                        Logout
-                      </button>
+                    <div className="w-16 h-16 bg-lime-500/20 rounded-full flex items-center justify-center">
+                      <span className="text-2xl font-bold text-lime-500">
+                        {user.displayName?.[0] || user.email?.[0] || 'U'}
+                      </span>
                     </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-white">
+                        {user.displayName || 'User'}
+                      </h3>
+                      <p className="text-gray-400 text-sm truncate">{user.email}</p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Navigation Links */}
+                <div className="space-y-2">
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <Link
+                      to="/"
+                      className={`flex items-center gap-3 w-full p-3 rounded-lg transition-all ${
+                        isActive('/') 
+                          ? 'bg-lime-500/20 text-lime-500' 
+                          : 'text-gray-300 hover:bg-lime-500/10 hover:text-lime-500'
+                      }`}
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                      <span className="text-lg font-medium">Home</span>
+                    </Link>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <Link
+                      to="/shop"
+                      className={`flex items-center gap-3 w-full p-3 rounded-lg transition-all ${
+                        isActive('/shop') 
+                          ? 'bg-lime-500/20 text-lime-500' 
+                          : 'text-gray-300 hover:bg-lime-500/10 hover:text-lime-500'
+                      }`}
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      <span className="text-lg font-medium">Shop</span>
+                    </Link>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <Link
+                      to="/about"
+                      className={`flex items-center gap-3 w-full p-3 rounded-lg transition-all ${
+                        isActive('/about') 
+                          ? 'bg-lime-500/20 text-lime-500' 
+                          : 'text-gray-300 hover:bg-lime-500/10 hover:text-lime-500'
+                      }`}
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-lg font-medium">About</span>
+                    </Link>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <Link
+                      to="/contact"
+                      className={`flex items-center gap-3 w-full p-3 rounded-lg transition-all ${
+                        isActive('/contact') 
+                          ? 'bg-lime-500/20 text-lime-500' 
+                          : 'text-gray-300 hover:bg-lime-500/10 hover:text-lime-500'
+                      }`}
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-lg font-medium">Contact</span>
+                    </Link>
+                  </motion.div>
+                </div>
+
+                {/* Account Section */}
+                <div className="space-y-2 pt-4 mt-4 border-t border-lime-500/10">
+                  {!user ? (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ delay: 0.6 }}
+                    >
+                      <Link
+                        to="/login"
+                        className="flex items-center gap-3 w-full p-3 rounded-lg text-gray-300 hover:bg-lime-500/10 hover:text-lime-500 transition-all"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span className="text-lg font-medium">Login</span>
+                      </Link>
+                    </motion.div>
+                  ) : (
+                    <>
+                      {user.email === 'admin@mcnutrition.com' && (
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ delay: 0.6 }}
+                        >
+                          <Link
+                            to="/admin"
+                            className="flex items-center gap-3 w-full p-3 rounded-lg text-gray-300 hover:bg-lime-500/10 hover:text-lime-500 transition-all"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                            </svg>
+                            <span className="text-lg font-medium">Admin Panel</span>
+                          </Link>
+                        </motion.div>
+                      )}
+
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ delay: 0.7 }}
+                      >
+                        <Link
+                          to="/user"
+                          className="flex items-center gap-3 w-full p-3 rounded-lg text-gray-300 hover:bg-lime-500/10 hover:text-lime-500 transition-all"
+                        >
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span className="text-lg font-medium">My Account</span>
+                        </Link>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ delay: 0.8 }}
+                      >
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-3 w-full p-3 rounded-lg text-gray-300 hover:bg-red-500/10 hover:text-red-500 transition-all"
+                        >
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          <span className="text-lg font-medium">Logout</span>
+                        </button>
+                      </motion.div>
+                    </>
                   )}
-                </motion.div>
+                </div>
               </div>
             </motion.div>
           )}

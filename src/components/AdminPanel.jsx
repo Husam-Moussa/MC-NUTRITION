@@ -78,8 +78,7 @@ const AdminPanel = () => {
       const querySnapshot = await getDocs(ordersQuery);
       const ordersList = querySnapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date()
+        ...doc.data()
       }));
       setOrders(ordersList);
     } catch (error) {
@@ -96,8 +95,7 @@ const AdminPanel = () => {
     const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
       const ordersList = snapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date()
+        ...doc.data()
       }));
       setOrders(ordersList);
     });
@@ -545,39 +543,144 @@ const AdminPanel = () => {
                         key={order.id}
                         className="bg-black/50 border border-lime-500/20 rounded-lg p-4 sm:p-6"
                       >
+                        {/* Order Header */}
                         <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
                           <div>
                             <h3 className="text-lg font-semibold text-white">Order #{order.id}</h3>
                             <p className="text-gray-400">
-                              {new Date(order.createdAt?.toDate()).toLocaleDateString()}
+                              {order.createdAt instanceof Object && typeof order.createdAt.toDate === 'function' 
+                                ? order.createdAt.toDate().toLocaleDateString()
+                                : new Date(order.createdAt).toLocaleDateString()}
                             </p>
                           </div>
-                          <select
-                            value={order.status}
-                            onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
-                            className="bg-black/50 border border-lime-500/20 rounded-lg px-4 py-2 text-white"
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
+                          <div className="flex gap-2">
+                            <select
+                              value={selectedStatus[order.id] || order.status}
+                              onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                              className="bg-black/50 border border-lime-500/20 rounded-lg px-4 py-2 text-white"
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="processing">Processing</option>
+                              <option value="shipped">Shipped</option>
+                              <option value="delivered">Delivered</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                            {selectedStatus[order.id] && (
+                              <button
+                                onClick={() => handleUpdateOrderStatus(order.id)}
+                                disabled={updatingStatus}
+                                className="bg-lime-500 text-black px-4 py-2 rounded-lg font-semibold hover:bg-lime-600 transition-colors disabled:opacity-50"
+                              >
+                                Update
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDeleteOrder(order.id)}
+                              disabled={deletingOrder}
+                              className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors disabled:opacity-50"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
-                        <div className="space-y-2">
+
+                        {/* Customer Information */}
+                        <div className="mb-6 p-4 bg-black/30 rounded-lg">
+                          <h4 className="text-lime-500 font-semibold mb-3">Customer Information</h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-gray-400">Name</p>
+                              <p className="text-white">{order.shippingDetails?.fullName || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-400">Email</p>
+                              <p className="text-white">{order.userEmail || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-400">Phone</p>
+                              <p className="text-white">{order.shippingDetails?.phoneNumber || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-400">Address</p>
+                              <p className="text-white">{order.shippingDetails?.address || 'N/A'}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Order Items */}
+                        <div className="space-y-4">
                           {order.items?.map(item => (
-                            <div key={item.id} className="flex justify-between text-gray-400">
-                              <span>{item.name} x {item.quantity}</span>
-                              <span>${(item.price * item.quantity).toFixed(2)}</span>
+                            <div key={item.id} className="flex items-center gap-4 p-3 bg-black/20 rounded-lg">
+                              <div className="w-16 h-16 flex-shrink-0">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  onError={(e) => {
+                                    e.target.src = 'https://via.placeholder.com/150?text=No+Image';
+                                  }}
+                                />
+                              </div>
+                              <div className="flex-grow">
+                                <h5 className="text-white font-medium">{item.name}</h5>
+                                <div className="flex flex-wrap gap-2 text-sm text-gray-400">
+                                  {item.flavor && (
+                                    <span className="bg-lime-500/10 px-2 py-1 rounded">
+                                      Flavor: {item.flavor}
+                                    </span>
+                                  )}
+                                  {item.size && (
+                                    <span className="bg-lime-500/10 px-2 py-1 rounded">
+                                      Size: {item.size}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-white font-medium">
+                                  ${(item.price * item.quantity).toFixed(2)}
+                                </p>
+                                <p className="text-sm text-gray-400">
+                                  ${item.price.toFixed(2)} x {item.quantity}
+                                </p>
+                              </div>
                             </div>
                           ))}
                         </div>
-                        <div className="mt-4 pt-4 border-t border-lime-500/10 flex justify-between items-center">
-                          <span className="text-gray-400">Total</span>
-                          <span className="text-xl font-bold text-lime-500">
-                            ${order.total?.toFixed(2)}
-                          </span>
+
+                        {/* Order Summary */}
+                        <div className="mt-4 pt-4 border-t border-lime-500/10">
+                          <div className="flex flex-col gap-2">
+                            <div className="flex justify-between text-gray-400">
+                              <span>Subtotal</span>
+                              <span>${order.subtotal?.toFixed(2) || '0.00'}</span>
+                            </div>
+                            {order.shipping && (
+                              <div className="flex justify-between text-gray-400">
+                                <span>Shipping</span>
+                                <span>${order.shipping.toFixed(2)}</span>
+                              </div>
+                            )}
+                            {order.tax && (
+                              <div className="flex justify-between text-gray-400">
+                                <span>Tax</span>
+                                <span>${order.tax.toFixed(2)}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between text-lg font-bold text-lime-500 pt-2">
+                              <span>Total</span>
+                              <span>${order.total?.toFixed(2)}</span>
+                            </div>
+                          </div>
                         </div>
+
+                        {/* Additional Notes */}
+                        {order.customerInfo?.notes && (
+                          <div className="mt-4 pt-4 border-t border-lime-500/10">
+                            <h4 className="text-lime-500 font-semibold mb-2">Customer Notes</h4>
+                            <p className="text-gray-400">{order.customerInfo.notes}</p>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -594,325 +697,338 @@ const AdminPanel = () => {
 
       {/* Add/Edit Product Modal */}
       {showAddProduct && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto z-50">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-black border border-lime-500/20 rounded-xl p-4 sm:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-black border border-lime-500/20 rounded-xl w-full max-w-2xl my-20 relative"
           >
-            <h2 className="text-2xl font-bold text-white mb-6">
-              {editingProduct ? 'Edit Product' : 'Add New Product'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Basic Information */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={newProduct.name}
-                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Price</label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={newProduct.price}
-                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                    step="0.01"
-                    required
-                  />
-                </div>
-              </div>
+            {/* Fixed Header */}
+            <div className="bg-black border-b border-lime-500/20 p-4 sm:p-6 rounded-t-xl">
+              <h2 className="text-2xl font-bold text-white">
+                {editingProduct ? 'Edit Product' : 'Add New Product'}
+              </h2>
+            </div>
 
-              {/* Category and Rating */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Category</label>
-                  <input
-                    type="text"
-                    name="category"
-                    value={newProduct.category}
-                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Rating</label>
-                  <input
-                    type="number"
-                    name="rating"
-                    value={newProduct.rating}
-                    onChange={(e) => setNewProduct({ ...newProduct, rating: e.target.value })}
-                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                    step="0.1"
-                    min="0"
-                    max="5"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Stock and Badge */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Stock</label>
-                  <input
-                    type="number"
-                    name="stock"
-                    value={newProduct.stock}
-                    onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Badge</label>
-                  <input
-                    type="text"
-                    name="badge"
-                    value={newProduct.badge}
-                    onChange={(e) => setNewProduct({ ...newProduct, badge: e.target.value })}
-                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                    placeholder="e.g., New, Sale, Best Seller"
-                  />
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Description</label>
-                <textarea
-                  name="description"
-                  value={newProduct.description}
-                  onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                  className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                  rows="4"
-                  required
-                />
-              </div>
-
-              {/* Tags */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Tags (comma-separated)</label>
-                <input
-                  type="text"
-                  name="tags"
-                  value={newProduct.tags}
-                  onChange={(e) => setNewProduct({ ...newProduct, tags: e.target.value })}
-                  className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                  placeholder="e.g., protein, vegan, gluten-free"
-                />
-              </div>
-
-              {/* Benefits */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Benefits</label>
-                {newProduct.benefits.map((benefit, index) => (
-                  <input
-                    key={index}
-                    type="text"
-                    value={benefit}
-                    onChange={(e) => {
-                      const newBenefits = [...newProduct.benefits];
-                      newBenefits[index] = e.target.value;
-                      setNewProduct({ ...newProduct, benefits: newBenefits });
-                    }}
-                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white mb-2"
-                    placeholder={`Benefit ${index + 1}`}
-                  />
-                ))}
-              </div>
-
-              {/* Training Types */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Training Types</label>
-                {newProduct.trainingTypes.map((type, index) => (
-                  <input
-                    key={index}
-                    type="text"
-                    value={type}
-                    onChange={(e) => {
-                      const newTypes = [...newProduct.trainingTypes];
-                      newTypes[index] = e.target.value;
-                      setNewProduct({ ...newProduct, trainingTypes: newTypes });
-                    }}
-                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white mb-2"
-                    placeholder={`Training Type ${index + 1}`}
-                  />
-                ))}
-              </div>
-
-              {/* Flavors */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Flavors</label>
-                {newProduct.flavors.map((flavor, index) => (
-                  <input
-                    key={index}
-                    type="text"
-                    value={flavor}
-                    onChange={(e) => {
-                      const newFlavors = [...newProduct.flavors];
-                      newFlavors[index] = e.target.value;
-                      setNewProduct({ ...newProduct, flavors: newFlavors });
-                    }}
-                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white mb-2"
-                    placeholder={`Flavor ${index + 1}`}
-                  />
-                ))}
-              </div>
-
-              {/* Sizes */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Sizes</label>
-                {newProduct.sizes.map((size, index) => (
-                  <input
-                    key={index}
-                    type="text"
-                    value={size}
-                    onChange={(e) => {
-                      const newSizes = [...newProduct.sizes];
-                      newSizes[index] = e.target.value;
-                      setNewProduct({ ...newProduct, sizes: newSizes });
-                    }}
-                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white mb-2"
-                    placeholder={`Size ${index + 1}`}
-                  />
-                ))}
-              </div>
-
-              {/* Achievement */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Achievement Badge</label>
-                <input
-                  type="text"
-                  name="achievement"
-                  value={newProduct.achievement}
-                  onChange={(e) => setNewProduct({ ...newProduct, achievement: e.target.value })}
-                  className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                  placeholder="e.g., Best Seller, Top Rated"
-                />
-              </div>
-
-              {/* Nutrition Information */}
-              <div>
-                <h3 className="text-lime-500 font-medium mb-4">Nutrition Information</h3>
+            {/* Scrollable Content */}
+            <div className="p-4 sm:p-6 overflow-y-auto">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Basic Information */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Protein</label>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-400">Name</label>
                     <input
                       type="text"
-                      value={newProduct.nutrition.protein}
-                      onChange={(e) => setNewProduct({
-                        ...newProduct,
-                        nutrition: { ...newProduct.nutrition, protein: e.target.value }
-                      })}
-                      className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                      placeholder="e.g., 25g per serving"
+                      name="name"
+                      value={newProduct.name}
+                      onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                      className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                      required
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Calories</label>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-400">Price</label>
                     <input
-                      type="text"
-                      value={newProduct.nutrition.calories}
-                      onChange={(e) => setNewProduct({
-                        ...newProduct,
-                        nutrition: { ...newProduct.nutrition, calories: e.target.value }
-                      })}
-                      className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                      placeholder="e.g., 120 calories"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Carbs</label>
-                    <input
-                      type="text"
-                      value={newProduct.nutrition.carbs}
-                      onChange={(e) => setNewProduct({
-                        ...newProduct,
-                        nutrition: { ...newProduct.nutrition, carbs: e.target.value }
-                      })}
-                      className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                      placeholder="e.g., 5g per serving"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Servings</label>
-                    <input
-                      type="text"
-                      value={newProduct.nutrition.servings}
-                      onChange={(e) => setNewProduct({
-                        ...newProduct,
-                        nutrition: { ...newProduct.nutrition, servings: e.target.value }
-                      })}
-                      className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                      placeholder="e.g., 30 servings per container"
+                      type="number"
+                      name="price"
+                      value={newProduct.price}
+                      onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                      className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                      step="0.01"
+                      required
                     />
                   </div>
                 </div>
-              </div>
 
-              {/* Image Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Product Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageChange(e)}
-                  className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-4 py-3 text-white"
-                />
-              </div>
+                {/* Category and Rating */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-400">Category</label>
+                    <input
+                      type="text"
+                      name="category"
+                      value={newProduct.category}
+                      onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                      className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-400">Rating</label>
+                    <input
+                      type="number"
+                      name="rating"
+                      value={newProduct.rating}
+                      onChange={(e) => setNewProduct({ ...newProduct, rating: e.target.value })}
+                      className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                      step="0.1"
+                      min="0"
+                      max="5"
+                      required
+                    />
+                  </div>
+                </div>
 
-              {/* Submit Buttons */}
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-lime-500 text-black py-3 rounded-lg font-semibold hover:bg-lime-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Saving...' : 'Save Product'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddProduct(false);
-                    setNewProduct({
-                      name: '',
-                      price: '',
-                      image: null,
-                      category: '',
-                      rating: '',
-                      stock: '',
-                      description: '',
-                      tags: '',
-                      nutrition: {
-                        protein: '',
-                        calories: '',
-                        carbs: '',
-                        servings: ''
-                      },
-                      badge: '',
-                      benefits: ['', '', '', ''],
-                      trainingTypes: ['', ''],
-                      flavors: ['', ''],
-                      sizes: ['', ''],
-                      achievement: ''
-                    });
-                  }}
-                  className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+                {/* Stock and Badge */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-400">Stock</label>
+                    <input
+                      type="number"
+                      name="stock"
+                      value={newProduct.stock}
+                      onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+                      className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-400">Badge</label>
+                    <input
+                      type="text"
+                      name="badge"
+                      value={newProduct.badge}
+                      onChange={(e) => setNewProduct({ ...newProduct, badge: e.target.value })}
+                      className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                      placeholder="e.g., New, Sale, Best Seller"
+                    />
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-400">Description</label>
+                  <textarea
+                    name="description"
+                    value={newProduct.description}
+                    onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                    rows="3"
+                    required
+                  />
+                </div>
+
+                {/* Tags */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-400">Tags (comma-separated)</label>
+                  <input
+                    type="text"
+                    name="tags"
+                    value={newProduct.tags}
+                    onChange={(e) => setNewProduct({ ...newProduct, tags: e.target.value })}
+                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                    placeholder="e.g., protein, vegan, gluten-free"
+                  />
+                </div>
+
+                {/* Benefits */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-400">Benefits</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {newProduct.benefits.map((benefit, index) => (
+                      <input
+                        key={index}
+                        type="text"
+                        value={benefit}
+                        onChange={(e) => {
+                          const newBenefits = [...newProduct.benefits];
+                          newBenefits[index] = e.target.value;
+                          setNewProduct({ ...newProduct, benefits: newBenefits });
+                        }}
+                        className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                        placeholder={`Benefit ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Training Types */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-400">Training Types</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {newProduct.trainingTypes.map((type, index) => (
+                      <input
+                        key={index}
+                        type="text"
+                        value={type}
+                        onChange={(e) => {
+                          const newTypes = [...newProduct.trainingTypes];
+                          newTypes[index] = e.target.value;
+                          setNewProduct({ ...newProduct, trainingTypes: newTypes });
+                        }}
+                        className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                        placeholder={`Training Type ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Flavors and Sizes */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-400">Flavors</label>
+                    {newProduct.flavors.map((flavor, index) => (
+                      <input
+                        key={index}
+                        type="text"
+                        value={flavor}
+                        onChange={(e) => {
+                          const newFlavors = [...newProduct.flavors];
+                          newFlavors[index] = e.target.value;
+                          setNewProduct({ ...newProduct, flavors: newFlavors });
+                        }}
+                        className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm mb-2"
+                        placeholder={`Flavor ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-400">Sizes</label>
+                    {newProduct.sizes.map((size, index) => (
+                      <input
+                        key={index}
+                        type="text"
+                        value={size}
+                        onChange={(e) => {
+                          const newSizes = [...newProduct.sizes];
+                          newSizes[index] = e.target.value;
+                          setNewProduct({ ...newProduct, sizes: newSizes });
+                        }}
+                        className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm mb-2"
+                        placeholder={`Size ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Achievement */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-400">Achievement Badge</label>
+                  <input
+                    type="text"
+                    name="achievement"
+                    value={newProduct.achievement}
+                    onChange={(e) => setNewProduct({ ...newProduct, achievement: e.target.value })}
+                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                    placeholder="e.g., Best Seller, Top Rated"
+                  />
+                </div>
+
+                {/* Nutrition Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lime-500 font-medium text-sm">Nutrition Information</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-400">Protein</label>
+                      <input
+                        type="text"
+                        value={newProduct.nutrition.protein}
+                        onChange={(e) => setNewProduct({
+                          ...newProduct,
+                          nutrition: { ...newProduct.nutrition, protein: e.target.value }
+                        })}
+                        className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                        placeholder="e.g., 25g per serving"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-400">Calories</label>
+                      <input
+                        type="text"
+                        value={newProduct.nutrition.calories}
+                        onChange={(e) => setNewProduct({
+                          ...newProduct,
+                          nutrition: { ...newProduct.nutrition, calories: e.target.value }
+                        })}
+                        className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                        placeholder="e.g., 120 calories"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-400">Carbs</label>
+                      <input
+                        type="text"
+                        value={newProduct.nutrition.carbs}
+                        onChange={(e) => setNewProduct({
+                          ...newProduct,
+                          nutrition: { ...newProduct.nutrition, carbs: e.target.value }
+                        })}
+                        className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                        placeholder="e.g., 5g per serving"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-400">Servings</label>
+                      <input
+                        type="text"
+                        value={newProduct.nutrition.servings}
+                        onChange={(e) => setNewProduct({
+                          ...newProduct,
+                          nutrition: { ...newProduct.nutrition, servings: e.target.value }
+                        })}
+                        className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                        placeholder="e.g., 30 servings per container"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-400">Product Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageChange(e)}
+                    className="w-full bg-black/50 border border-lime-500/20 rounded-lg px-3 py-2 text-white text-sm"
+                  />
+                </div>
+
+                {/* Submit Buttons - Fixed at bottom */}
+                <div className="bg-black border-t border-lime-500/20 p-4 sm:p-6 rounded-b-xl">
+                  <div className="flex gap-4">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex-1 bg-lime-500 text-black py-2 rounded-lg font-semibold hover:bg-lime-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    >
+                      {loading ? 'Saving...' : 'Save Product'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddProduct(false);
+                        setNewProduct({
+                          name: '',
+                          price: '',
+                          image: null,
+                          category: '',
+                          rating: '',
+                          stock: '',
+                          description: '',
+                          tags: '',
+                          nutrition: {
+                            protein: '',
+                            calories: '',
+                            carbs: '',
+                            servings: ''
+                          },
+                          badge: '',
+                          benefits: ['', '', '', ''],
+                          trainingTypes: ['', ''],
+                          flavors: ['', ''],
+                          sizes: ['', ''],
+                          achievement: ''
+                        });
+                      }}
+                      className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-semibold hover:bg-gray-600 transition-colors text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
           </motion.div>
         </div>
       )}

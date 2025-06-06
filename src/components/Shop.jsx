@@ -1288,31 +1288,45 @@ const Shop = () => {
 
   // Firebase listener effect
   useEffect(() => {
-    const productsRef = collection(db, 'products');
-    const unsubscribe = onSnapshot(productsRef, 
-      (snapshot) => {
-        const dynamicProducts = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        // Combine dynamic and static products
-        const allProducts = [...dynamicProducts, ...staticProducts];
-        console.log('Fetched products:', allProducts);
-        setProducts(allProducts);
-        setFilteredProducts(allProducts);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error fetching products:', error);
-        // Even if dynamic products fail to load, show static products
-        setProducts(staticProducts);
-        setFilteredProducts(staticProducts);
-        setError('Failed to load some products');
-        setLoading(false);
-      }
-    );
+    let unsubscribe;
+    try {
+      const productsRef = collection(db, 'products');
+      unsubscribe = onSnapshot(productsRef, 
+        (snapshot) => {
+          const dynamicProducts = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          // Combine dynamic and static products
+          const allProducts = [...dynamicProducts, ...staticProducts];
+          console.log('Fetched products:', allProducts);
+          setProducts(allProducts);
+          setFilteredProducts(allProducts);
+          setLoading(false);
+        },
+        (error) => {
+          console.error('Error fetching products:', error);
+          // Fallback to static products
+          setProducts(staticProducts);
+          setFilteredProducts(staticProducts);
+          setError('Failed to load dynamic products. Showing static products instead.');
+          setLoading(false);
+        }
+      );
+    } catch (error) {
+      console.error('Error setting up Firebase listener:', error);
+      // Fallback to static products
+      setProducts(staticProducts);
+      setFilteredProducts(staticProducts);
+      setError('Failed to connect to Firebase. Showing static products instead.');
+      setLoading(false);
+    }
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   // Filter and sort effect

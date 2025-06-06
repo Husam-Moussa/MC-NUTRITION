@@ -4,7 +4,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase/config';
 import { useNavigate } from 'react-router-dom';
 
-const CheckoutForm = ({ cartItems, total, onClose }) => {
+const CheckoutForm = ({ cartItems, total, onClose, onOrderComplete }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
@@ -75,7 +75,7 @@ const CheckoutForm = ({ cartItems, total, onClose }) => {
       
       // Close modal after 3 seconds and redirect to home
       setTimeout(() => {
-        onClose();
+        onOrderComplete();
         navigate('/');
       }, 3000);
 

@@ -47,12 +47,17 @@ const Cart = ({ isOpen, onClose }) => {
     onClose();
   };
 
+  const handleCheckoutCancel = () => {
+    setShowCheckout(false);
+  };
+
   if (showCheckout) {
     return (
       <CheckoutForm
         cartItems={cartItems}
         total={total}
-        onClose={handleCheckoutComplete}
+        onClose={handleCheckoutCancel}
+        onOrderComplete={handleCheckoutComplete}
       />
     );
   }

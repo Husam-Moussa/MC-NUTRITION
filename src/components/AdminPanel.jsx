@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from '../firebase/config';
+import { db, storage, auth } from '../firebase/config';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -51,10 +51,36 @@ const AdminPanel = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
+  // Check admin status on component mount
   useEffect(() => {
-    fetchProducts();
-    fetchOrders();
-  }, []);
+    const checkAdminStatus = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          navigate('/login');
+          return;
+        }
+
+        // Get the user's ID token to check admin claim
+        const idTokenResult = await user.getIdTokenResult();
+        if (!idTokenResult.claims.admin) {
+          setError('Access denied. Admin privileges required.');
+          navigate('/');
+          return;
+        }
+
+        // If admin, fetch data
+        fetchProducts();
+        fetchOrders();
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setError('Failed to verify admin privileges');
+        navigate('/login');
+      }
+    };
+
+    checkAdminStatus();
+  }, [navigate]);
 
   const fetchProducts = async () => {
     try {
@@ -91,14 +117,23 @@ const AdminPanel = () => {
 
   // Add real-time updates for orders
   useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
     const ordersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
-      const ordersList = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setOrders(ordersList);
-    });
+    const unsubscribe = onSnapshot(ordersQuery, 
+      (snapshot) => {
+        const ordersList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setOrders(ordersList);
+      },
+      (error) => {
+        console.error('Error in orders snapshot:', error);
+        setError('Failed to update orders in real-time');
+      }
+    );
 
     return () => unsubscribe();
   }, []);
